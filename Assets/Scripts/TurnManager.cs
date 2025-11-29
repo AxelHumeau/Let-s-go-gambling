@@ -5,7 +5,7 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 
-public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling }
+public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath }
 
 public class TurnManager : MonoBehaviour
 {
@@ -30,7 +30,17 @@ public class TurnManager : MonoBehaviour
     private int? amountToBluff = null;
     private Player callingPlayer;
     public Action OnChangeOptionCallback;
+    private bool endOfTurn = false;
+    private int pathChosen = 0;
 
+    public int PathChosen
+    {
+        get { return pathChosen; }
+    }
+    public bool endOfTurnReached
+    {
+        get { return endOfTurn; }
+    }
     public SelectedAction SelectedAction
     {
         get { return selectedAction; }
@@ -130,6 +140,14 @@ public class TurnManager : MonoBehaviour
                     if (amountToBluff < 1) amountToBluff = 1;
                     if (amountToBluff > 6) amountToBluff = 6;
                     break;
+                case SelectedAction.SelectPath:
+                    if (horizontalDirection > 0) horizontalDirection = 1;
+                    else if (horizontalDirection < 0) horizontalDirection = -1;
+                    pathChosen += (int)horizontalDirection;
+                    if (pathChosen < 0) pathChosen = 0;
+                    if (pathChosen >= CurrentPlayer.CurrentCell.nextCells.Count)
+                        pathChosen = CurrentPlayer.CurrentCell.nextCells.Count - 1;
+                    break;
                 default:
                     if (verticalDirection > 0)
                     {
@@ -212,6 +230,9 @@ public class TurnManager : MonoBehaviour
                     }
                     EndTurn();
                     break;
+                case SelectedAction.SelectPath:
+                    CurrentPlayer.PathIndex = pathChosen;
+                    break;
             }
         }
         StartCoroutine(ActionCooldown(0.2f));
@@ -220,8 +241,32 @@ public class TurnManager : MonoBehaviour
     private void EndTurn()
     {
         CurrentPlayer.StartMove(amountToMove);
-        StartCoroutine(ActionCooldown(1.0f));
+        endOfTurn = true;
+        OnChangeOptionCallback();
+        StartCoroutine(WaitForPlayerToStopMoving());
+    }
+
+    private IEnumerator WaitForPlayerToStopMoving()
+    {
+        while (CurrentPlayer.IsMoving)
+        {
+            yield return new WaitUntil(() => !CurrentPlayer.IsMoving || CurrentPlayer.WaitingForPathChoice);
+            if (CurrentPlayer.WaitingForPathChoice)
+            {
+                endOfTurn = false;
+                selectedAction = SelectedAction.SelectPath;
+                OnChangeOptionCallback();
+            }
+            yield return new WaitUntil(() => !CurrentPlayer.WaitingForPathChoice);
+            endOfTurn = true;
+            OnChangeOptionCallback();
+        }
         Debug.Log($"{CurrentPlayer.name}'s turn has ended.");
+        NextTurn();
+    }
+
+    private void NextTurn()
+    {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.Length;
         if (currentPlayerIndex == 0)
         {
@@ -233,6 +278,9 @@ public class TurnManager : MonoBehaviour
         yesNoSelection = false;
         amountToBluff = null;
         callingPlayer = null;
+        pathChosen = 0;
+        endOfTurn = false;
+        StartCoroutine(ActionCooldown(1.0f));
         OnChangeOptionCallback();
     }
 }

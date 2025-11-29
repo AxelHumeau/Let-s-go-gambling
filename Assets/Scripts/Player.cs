@@ -14,6 +14,21 @@ public class Player : MonoBehaviour
     private List<Item> inventory = new List<Item>();
     private int stocksOwned = 0;
     private bool isMoving = false;
+    private int? pathIndex = null;
+    private bool waitingForPathChoice = false;
+
+    public bool WaitingForPathChoice
+    {
+        get { return waitingForPathChoice; }
+    }
+    public int? PathIndex
+    {
+        set { pathIndex = value; }
+    }
+    public bool IsMoving
+    {
+        get { return isMoving; }
+    }
 
     public int Money {
         get { return money; }
@@ -72,6 +87,17 @@ public class Player : MonoBehaviour
         }
         for (int i = 0; i < amount; i++)
         {
+            if ((CurrentCell.nextCells.Count == 0 && !isBackward) || (CurrentCell.previousCells.Count == 0 && isBackward))
+            {
+                break;
+            }
+            if (!isBackward && CurrentCell.nextCells.Count > 1)
+            {
+                int? index = pathIndex;
+                waitingForPathChoice = true;
+                yield return new WaitUntil(() => index != pathIndex);
+            }
+            waitingForPathChoice = false;
             MoveToNextCell(isBackward);
             yield return new WaitForSeconds(0.5f);
         }
@@ -84,17 +110,17 @@ public class Player : MonoBehaviour
         {
             if (CurrentCell.previousCells.Count > 0)
             {
-                // implement branching paths later
-                CurrentCell = CurrentCell.previousCells.First();
+                int index = Random.Range(0, CurrentCell.previousCells.Count);
+                CurrentCell = CurrentCell.previousCells[index];
                 return;
             }
             CurrentCell = CurrentCell.previousCells.First();
             return;
         }
-        if (CurrentCell.nextCells.Count > 0)
+        if (CurrentCell.nextCells.Count > 0 && pathIndex.HasValue)
         {
-            // implement branching paths later
-            CurrentCell = CurrentCell.nextCells.First();
+            CurrentCell = CurrentCell.nextCells[pathIndex.Value];
+            pathIndex = null;
             return;
         }
         CurrentCell = CurrentCell.nextCells.First();

@@ -28,6 +28,11 @@ public class UITurnOptionDisplayer : MonoBehaviour
             Destroy(button);
         }
         optionButtons.Clear();
+        if (turnManager.endOfTurnReached)
+        {
+            textMeshPro.text = "";
+            return;
+        }
         switch (turnManager.SelectedAction)
         {
             case SelectedAction.UseItem:
@@ -51,6 +56,10 @@ public class UITurnOptionDisplayer : MonoBehaviour
                 textMeshPro.text = $"{turnManager.CallingPlayer.name}, {turnManager.CurrentPlayer.name} could be bluffing, do you want to call them out?";
                 optionButtons.Add(CreateOptionButton("Yes", new Vector2(0, -150)));
                 optionButtons.Add(CreateOptionButton("No", new Vector2(0, -300)));
+                break;
+            case SelectedAction.SelectPath:
+                textMeshPro.text = "Select your path";
+                optionButtons.Add(CreateOptionButton("0", new Vector2(0, -150)));
                 break;
         }
         isUpdating = false;
@@ -89,6 +98,9 @@ public class UITurnOptionDisplayer : MonoBehaviour
             case SelectedAction.Bluff:
                 int amount = turnManager.AmountToBluff.HasValue ? turnManager.AmountToBluff.Value : 1;
                 optionButtons[0].GetComponent<TMP_Text>().text = amount.ToString();
+                return;
+            case SelectedAction.SelectPath:
+                optionButtons[0].GetComponent<TMP_Text>().text = turnManager.PathChosen.ToString();
                 return;
         }
         ClearHoverEffect();
