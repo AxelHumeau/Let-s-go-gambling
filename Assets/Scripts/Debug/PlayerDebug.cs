@@ -38,7 +38,6 @@ public class PlayerDebug : MonoBehaviour
         {
             player.AddEffect(Effect.MineResistant, 1);
         }
-        player.StartMove(3);
 	}
 
 	// Update is called once per frame

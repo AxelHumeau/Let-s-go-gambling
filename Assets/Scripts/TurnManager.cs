@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -28,6 +29,33 @@ public class TurnManager : MonoBehaviour
     private int amountToMove = 1;
     private int? amountToBluff = null;
     private Player callingPlayer;
+    public Action OnChangeOptionCallback;
+
+    public SelectedAction SelectedAction
+    {
+        get { return selectedAction; }
+    }
+    public bool CanUseItem
+    {
+        get { return canUseItem; }
+    }
+    public bool YesNoSelection
+    {
+        get { return yesNoSelection; }
+    }
+    public Player CallingPlayer
+    {
+        get { return callingPlayer; }
+    }
+    public int RolledAmount
+    {
+        get { return amountToMove; }
+    }
+    public int? AmountToBluff
+    {
+        get { return amountToBluff; }
+    }
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -114,7 +142,7 @@ public class TurnManager : MonoBehaviour
                     break;
             }
         }
-        StartCoroutine(ActionCooldown(0.2f));
+        StartCoroutine(ActionCooldown(0.1f));
     }
 
     public void OnSubmit(CallbackContext context)
@@ -138,6 +166,7 @@ public class TurnManager : MonoBehaviour
                     amountToMove = UnityEngine.Random.Range(1, 7);
                     Debug.Log($"{CurrentPlayer.name} rolled a {amountToMove}.");
                     selectedAction = SelectedAction.BluffSelection;
+                    OnChangeOptionCallback();
                     break;
                 case SelectedAction.ViewMap:
                     // Implement map viewing
@@ -147,6 +176,7 @@ public class TurnManager : MonoBehaviour
                     {
                         selectedAction = SelectedAction.Bluff;
                         yesNoSelection = false;
+                        OnChangeOptionCallback();
                     }
                     else
                     {
@@ -156,8 +186,9 @@ public class TurnManager : MonoBehaviour
                 case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
                     Debug.Log($"{CurrentPlayer.name} is bluffing with {amountToBluff}.");
                     selectedAction = SelectedAction.BluffCalling;
-                    int index = Random.Range(0, players.Length - 1);
+                    int index = UnityEngine.Random.Range(0, players.Length - 1);
                     callingPlayer = players.Where(player => player != CurrentPlayer).ToList()[index];
+                    OnChangeOptionCallback();
                     break;
                 case SelectedAction.BluffCalling: // Player B decides whether to call the bluff
                     if (yesNoSelection)
@@ -202,5 +233,6 @@ public class TurnManager : MonoBehaviour
         yesNoSelection = false;
         amountToBluff = null;
         callingPlayer = null;
+        OnChangeOptionCallback();
     }
 }
