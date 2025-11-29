@@ -65,20 +65,39 @@ public class Player : MonoBehaviour
     private IEnumerator Move(int amount)
     {
         isMoving = true;
+        bool isBackward = amount < 0;
+        if (isBackward)
+        {
+            amount = -amount;
+        }
         for (int i = 0; i < amount; i++)
         {
-            if (CurrentCell.nextCells.Count == 1)
-            {
-                CurrentCell = CurrentCell.nextCells.First();
-            }
-            else
-            {
-                // implement braching paths later
-                CurrentCell = CurrentCell.nextCells.First();
-            }
+            MoveToNextCell(isBackward);
             yield return new WaitForSeconds(0.5f);
         }
         isMoving = false;
+    }
+
+    private void MoveToNextCell(bool isBackward)
+    {
+        if (isBackward)
+        {
+            if (CurrentCell.previousCells.Count > 0)
+            {
+                // implement branching paths later
+                CurrentCell = CurrentCell.previousCells.First();
+                return;
+            }
+            CurrentCell = CurrentCell.previousCells.First();
+            return;
+        }
+        if (CurrentCell.nextCells.Count > 0)
+        {
+            // implement branching paths later
+            CurrentCell = CurrentCell.nextCells.First();
+            return;
+        }
+        CurrentCell = CurrentCell.nextCells.First();
     }
 
     public void StartMove(int amount)

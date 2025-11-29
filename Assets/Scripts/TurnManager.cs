@@ -1,13 +1,15 @@
-using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
-public enum SelectedAction { UseItem, Move, ViewMap }
+
+public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling }
 
 public class TurnManager : MonoBehaviour
 {
     [SerializeField] private Player[] players;
+    [SerializeField] private int unsuccessfulBluffPenalty = 10;
     private int currentPlayerIndex = 0;
     public Player CurrentPlayer
     {
@@ -22,6 +24,10 @@ public class TurnManager : MonoBehaviour
     private bool isSelectingItem = false;
     private SelectedAction selectedAction = SelectedAction.Move;
     private bool isOnCooldown = false;
+    private bool yesNoSelection = false; // false = No, true = Yes
+    private int amountToMove = 1;
+    private int? amountToBluff = null;
+    private Player callingPlayer;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -63,6 +69,10 @@ public class TurnManager : MonoBehaviour
         else
         {
             selectedAction++;
+            if (selectedAction > SelectedAction.ViewMap)
+            {
+                selectedAction = SelectedAction.UseItem;
+            }
         }
     }
 
@@ -77,13 +87,31 @@ public class TurnManager : MonoBehaviour
         }
         else
         {
-            if (verticalDirection > 0)
+            switch (selectedAction)
             {
-                CycleUpOnOption();
-            }
-            else if (verticalDirection < 0)
-            {
-                CycleDownOnOption();
+                case SelectedAction.BluffSelection:
+                case SelectedAction.BluffCalling:
+                    yesNoSelection = !yesNoSelection;
+                    break;
+                case SelectedAction.Bluff:
+                    if (verticalDirection > 0) verticalDirection = 1;
+                    else if (verticalDirection < 0) verticalDirection = -1;
+                    if (amountToBluff == null)
+                        amountToBluff = 1;
+                    amountToBluff += (int)verticalDirection;
+                    if (amountToBluff < 1) amountToBluff = 1;
+                    if (amountToBluff > 6) amountToBluff = 6;
+                    break;
+                default:
+                    if (verticalDirection > 0)
+                    {
+                        CycleUpOnOption();
+                    }
+                    else if (verticalDirection < 0)
+                    {
+                        CycleDownOnOption();
+                    }
+                    break;
             }
         }
         StartCoroutine(ActionCooldown(0.2f));
@@ -107,13 +135,51 @@ public class TurnManager : MonoBehaviour
                     }
                     break;
                 case SelectedAction.Move:
-                    int amountToMove = UnityEngine.Random.Range(1, 7);
+                    amountToMove = UnityEngine.Random.Range(1, 7);
                     Debug.Log($"{CurrentPlayer.name} rolled a {amountToMove}.");
-                    CurrentPlayer.StartMove(amountToMove);
-                    EndTurn();
+                    selectedAction = SelectedAction.BluffSelection;
                     break;
                 case SelectedAction.ViewMap:
                     // Implement map viewing
+                    break;
+                case SelectedAction.BluffSelection: // Player chooses whether to bluff
+                    if (yesNoSelection)
+                    {
+                        selectedAction = SelectedAction.Bluff;
+                        yesNoSelection = false;
+                    }
+                    else
+                    {
+                        EndTurn();
+                    }
+                    break;
+                case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
+                    Debug.Log($"{CurrentPlayer.name} is bluffing with {amountToBluff}.");
+                    selectedAction = SelectedAction.BluffCalling;
+                    int index = Random.Range(0, players.Length - 1);
+                    callingPlayer = players.Where(player => player != CurrentPlayer).ToList()[index];
+                    break;
+                case SelectedAction.BluffCalling: // Player B decides whether to call the bluff
+                    if (yesNoSelection)
+                    {
+                        Debug.Log($"{callingPlayer.name} called a bluff");
+                        if (amountToBluff.HasValue)
+                        {
+                            amountToMove = -amountToBluff.Value;
+                            Debug.Log($"{CurrentPlayer.name} will move {amountToMove} due to the successful bluff call.");
+                        }
+                        else
+                        {
+                            callingPlayer.SubtractMoney(unsuccessfulBluffPenalty);
+                            Debug.Log($"{callingPlayer.name} called a bluff unsuccessfully and loses {unsuccessfulBluffPenalty} money.");
+                        }
+                    }
+                    else
+                    {
+                        amountToMove = amountToBluff.Value;
+                        Debug.Log($"{callingPlayer.name} did not call the bluff and {CurrentPlayer.name} will move {amountToMove}.");
+                    }
+                    EndTurn();
                     break;
             }
         }
@@ -122,6 +188,7 @@ public class TurnManager : MonoBehaviour
 
     private void EndTurn()
     {
+        CurrentPlayer.StartMove(amountToMove);
         StartCoroutine(ActionCooldown(1.0f));
         Debug.Log($"{CurrentPlayer.name}'s turn has ended.");
         currentPlayerIndex = (currentPlayerIndex + 1) % players.Length;
@@ -132,5 +199,8 @@ public class TurnManager : MonoBehaviour
         canUseItem = true;
         isSelectingItem = false;
         selectedAction = SelectedAction.Move;
+        yesNoSelection = false;
+        amountToBluff = null;
+        callingPlayer = null;
     }
 }
