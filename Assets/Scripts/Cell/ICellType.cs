@@ -8,5 +8,6 @@ using System.Threading.Tasks;
 public interface ICellType
 {
     public string GetCellType();
-    public void ExecuteCellAction(Cell cell);
+    public void OnStopOnCell(Cell cell);
+    public void OnPassOnCell(Cell cell);
 }

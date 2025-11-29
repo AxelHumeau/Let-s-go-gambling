@@ -5,7 +5,12 @@ public class EmptyCell : MonoBehaviour, ICellType
 {
     public string GetCellType() => "Empty";
 
-    public void ExecuteCellAction(Cell cell)
+    public void OnStopOnCell(Cell cell)
+    {
+        // No action for empty cell
+    }
+
+    public void OnPassOnCell(Cell cell)
     {
         // No action for empty cell
     }
