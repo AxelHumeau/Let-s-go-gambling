@@ -92,6 +92,7 @@ public class UITurnOptionDisplayer : MonoBehaviour
         image.color = new Color(image.color.r, image.color.g, image.color.b, 0);
         buttonObject.transform.SetParent(this.transform);
         buttonObject.transform.localPosition = new Vector3(offset.x, offset.y, 0);
+        buttonObject.transform.localScale = Vector3.one;
         return buttonObject;
     }
 
