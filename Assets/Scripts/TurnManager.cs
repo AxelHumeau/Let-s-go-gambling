@@ -11,6 +11,7 @@ public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, Bluf
 public class TurnManager : MonoBehaviour
 {
     public Player[] Players;
+    public int turnLimit = 20;
     [SerializeField] private int unsuccessfulBluffPenalty = 10;
     private int currentPlayerIndex = 0;
     public Player CurrentPlayer
@@ -24,7 +25,6 @@ public class TurnManager : MonoBehaviour
     }
     private bool canUseItem = true;
     private SelectedAction selectedAction = SelectedAction.Move;
-    private bool isOnCooldown = false;
     private bool yesNoSelection = false; // false = No, true = Yes
     private int amountToMove = 1;
     private int? amountToBluff = null;
@@ -35,7 +35,12 @@ public class TurnManager : MonoBehaviour
     private int selectedItemIndex = 0;
     private int selectedPlayerIndex = 0;
     private Dictionary<Cell, bool> cellActionCompletionStatus = new Dictionary<Cell, bool>();
+    private bool isGameOver = false;
 
+    public bool IsGameOver
+    {
+        get { return isGameOver; }
+    }
     public bool WaitingForCellAction { get { return cellActionCompletionStatus.Any(pair  => pair.Value); } }
     public int SelectedItemIndex
     {
@@ -91,12 +96,6 @@ public class TurnManager : MonoBehaviour
 
     }
 
-    private IEnumerator ActionCooldown(float cooldownDuration)
-    {
-        isOnCooldown = true;
-        yield return new WaitForSeconds(cooldownDuration);
-        isOnCooldown = false;
-    }
 
     void CycleUpOnOption()
     {
@@ -318,6 +317,14 @@ public class TurnManager : MonoBehaviour
         {
             turnCount++;
         }
+        if (turnCount >= turnLimit)
+        {
+            Debug.Log("Turn limit reached. Game over.");
+            endOfTurn = true;
+            OnChangeOptionCallback();
+            isGameOver = true;
+            return;
+        }
         canUseItem = true;
         selectedAction = SelectedAction.Move;
         selectedItemIndex = 0;
@@ -327,7 +334,6 @@ public class TurnManager : MonoBehaviour
         callingPlayer = null;
         pathChosen = 0;
         endOfTurn = false;
-        StartCoroutine(ActionCooldown(1.0f));
         OnChangeOptionCallback();
     }
 
