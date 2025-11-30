@@ -11,8 +11,10 @@ public class StealItem : IItem
 
     public void Use(Player target, Player user)
     {
+        if (target.Inventory.Count == 0) return;
         int index = Random.Range(0, target.Inventory.Count);
         IItem stolenItem = target.Inventory[index];
         target.RemoveItem(index);
+        user.AddItem(stolenItem);
     }
 }

@@ -62,6 +62,11 @@ public class Player : MonoBehaviour
         }
     }
 
+    public bool HasEffect(Effect effect)
+    {
+        return activeEffects.GetValueOrDefault(effect) > 0;
+    }
+
     public bool AddItem(IItem item)
     {
         if (inventory.Count >= 4) return false;

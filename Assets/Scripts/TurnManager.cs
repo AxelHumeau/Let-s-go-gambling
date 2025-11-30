@@ -199,8 +199,15 @@ public class TurnManager : MonoBehaviour
             case SelectedAction.Move:
                 amountToMove = UnityEngine.Random.Range(1, 7);
                 Debug.Log($"{CurrentPlayer.playerName} rolled a {amountToMove}.");
-                selectedAction = SelectedAction.BluffSelection;
-                OnChangeOptionCallback();
+                if (CurrentPlayer.HasEffect(Effect.NoBluff))
+                {
+                    EndTurn();
+                }
+                else
+                {
+                    selectedAction = SelectedAction.BluffSelection;
+                    OnChangeOptionCallback();
+                }
                 break;
             case SelectedAction.ViewMap:
                 // Implement map viewing
@@ -313,6 +320,8 @@ public class TurnManager : MonoBehaviour
         }
         canUseItem = true;
         selectedAction = SelectedAction.Move;
+        selectedItemIndex = 0;
+        selectedPlayerIndex = 0;
         yesNoSelection = false;
         amountToBluff = null;
         callingPlayer = null;
