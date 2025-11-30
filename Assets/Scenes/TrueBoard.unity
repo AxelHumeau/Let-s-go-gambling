@@ -890,7 +890,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   turnManager: {fileID: 1493074516}
-  optionButtonPrefab: {fileID: 1498282282624600885, guid: 8ecbb9440d3c99d4399f739a47d8e452, type: 3}
+  optionButtonPrefab: {fileID: 7858782616634220450, guid: 8ecbb9440d3c99d4399f739a47d8e452, type: 3}
 --- !u!114 &359718286
 MonoBehaviour:
   m_ObjectHideFlags: 0
