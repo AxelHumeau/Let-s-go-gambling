@@ -511,12 +511,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDebug
   player: {fileID: 1070497137}
-  hasDouble: 1
+  hasDouble: 0
   hasHalf: 0
   hasLuckIncrease: 0
   hasLuckDecrease: 0
   hasNoBluff: 0
   hasMineResistant: 0
+  givenMoney: 0
+  givenDoubleDice: 0
+  givenHalfDice: 0
 --- !u!114 &1070497137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -529,6 +532,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c98904b1ae84abb438797bc8f3af4770, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  playerName: Roger
   CurrentCell: {fileID: 240269034}
 --- !u!212 &1070497138
 SpriteRenderer:
@@ -576,7 +580,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -2135585597343286014, guid: 5aa8b770bc43046bc8d993d0d5b7f4a5, type: 3}
   m_Color: {r: 0, g: 0.44150317, b: 0.8773585, a: 1}
   m_FlipX: 0
@@ -597,7 +601,7 @@ Transform:
   m_GameObject: {fileID: 1070497135}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.72, y: -1.59, z: 0}
+  m_LocalPosition: {x: 1.147, y: -0.13780004, z: 0}
   m_LocalScale: {x: 0.575, y: 0.5342, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -699,6 +703,7 @@ GameObject:
   - component: {fileID: 1377990333}
   - component: {fileID: 1377990332}
   - component: {fileID: 1377990335}
+  - component: {fileID: 1377990336}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -824,6 +829,23 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &1377990336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377990331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 680eac15a121f074b8346c061e8197ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  turnManager: {fileID: 1493074516}
+  cameraToControl: {fileID: 1377990333}
+  offset: {x: 0, y: 0, z: -10}
+  followSpeed: 5
+  smoothFollow: 1
 --- !u!1001 &1405456369
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1010,7 +1032,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0fb7ec70bda3364a84e3e7bb027d984, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurnManager
-  players:
+  Players:
   - {fileID: 1874770674}
   - {fileID: 1070497137}
   unsuccessfulBluffPenalty: 10
@@ -1190,6 +1212,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c98904b1ae84abb438797bc8f3af4770, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  playerName: Bobby
   CurrentCell: {fileID: 240269034}
 --- !u!212 &1874770675
 SpriteRenderer:
@@ -1237,7 +1260,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -2135585597343286014, guid: 5aa8b770bc43046bc8d993d0d5b7f4a5, type: 3}
   m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_FlipX: 0
@@ -1258,7 +1281,7 @@ Transform:
   m_GameObject: {fileID: 1874770673}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.003, y: -0.7522, z: 0}
+  m_LocalPosition: {x: 1.43, y: 0.7, z: 0}
   m_LocalScale: {x: 0.575, y: 0.5342, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1271,18 +1294,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1874770673}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa6b3239b6c9b2541be8169834fc5be2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDebug
   player: {fileID: 1874770674}
-  hasDouble: 1
+  hasDouble: 0
   hasHalf: 0
   hasLuckIncrease: 0
   hasLuckDecrease: 0
   hasNoBluff: 0
   hasMineResistant: 0
+  givenMoney: 0
+  givenDoubleDice: 2
+  givenHalfDice: 0
 --- !u!114 &1913488382 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3292119580469241524, guid: 560be57ac53bd5f44ab26efaef47c4d7, type: 3}

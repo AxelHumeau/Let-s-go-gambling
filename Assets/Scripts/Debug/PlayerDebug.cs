@@ -10,6 +10,9 @@ public class PlayerDebug : MonoBehaviour
     public bool hasLuckDecrease = false;
     public bool hasNoBluff = false;
     public bool hasMineResistant = false;
+    public int givenMoney = 0;
+    public int givenDoubleDice = 0;
+    public int givenHalfDice = 0;
 
     // Use this for initialization
     void Start()
@@ -38,7 +41,19 @@ public class PlayerDebug : MonoBehaviour
         {
             player.AddEffect(Effect.MineResistant, 1);
         }
-	}
+        if (givenMoney != 0)
+        {
+            player.AddMoney(givenMoney);
+        }
+        for (int i = 0; i < givenDoubleDice; i++)
+        {
+            player.AddItem(new DoubleDice());
+        }
+        for (int i = 0; i < givenHalfDice; i++)
+        {
+            player.AddItem(new LesserDice());
+        }
+    }
 
 	// Update is called once per frame
 	void Update()

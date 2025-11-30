@@ -5,16 +5,16 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 
-public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath }
+public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget }
 
 public class TurnManager : MonoBehaviour
 {
-    [SerializeField] private Player[] players;
+    public Player[] Players;
     [SerializeField] private int unsuccessfulBluffPenalty = 10;
     private int currentPlayerIndex = 0;
     public Player CurrentPlayer
     {
-        get { return players[currentPlayerIndex]; }
+        get { return Players[currentPlayerIndex]; }
     }
     private int turnCount = 0;
     public int TurnCount
@@ -22,7 +22,6 @@ public class TurnManager : MonoBehaviour
         get { return turnCount; }
     }
     private bool canUseItem = true;
-    private bool isSelectingItem = false;
     private SelectedAction selectedAction = SelectedAction.Move;
     private bool isOnCooldown = false;
     private bool yesNoSelection = false; // false = No, true = Yes
@@ -32,7 +31,17 @@ public class TurnManager : MonoBehaviour
     public Action OnChangeOptionCallback;
     private bool endOfTurn = false;
     private int pathChosen = 0;
+    private int selectedItemIndex = 0;
+    private int selectedPlayerIndex = 0;
 
+    public int SelectedItemIndex
+    {
+        get { return selectedItemIndex; }
+    }
+    public int SelectedItemTargetIndex
+    {
+        get { return selectedPlayerIndex; }
+    }
     public int PathChosen
     {
         get { return pathChosen; }
@@ -47,7 +56,7 @@ public class TurnManager : MonoBehaviour
     }
     public bool CanUseItem
     {
-        get { return canUseItem; }
+        get { return canUseItem && CurrentPlayer.Inventory.Count != 0; }
     }
     public bool YesNoSelection
     {
@@ -95,21 +104,22 @@ public class TurnManager : MonoBehaviour
         else
         {
             selectedAction--;
+            if (selectedAction == SelectedAction.UseItem && !CanUseItem)
+            {
+                CycleUpOnOption();
+            }
         }
     }
 
     void CycleDownOnOption()
     {
-        if (selectedAction == SelectedAction.ViewMap)
+        selectedAction++;
+        if (selectedAction > SelectedAction.ViewMap)
         {
             selectedAction = SelectedAction.UseItem;
-        }
-        else
-        {
-            selectedAction++;
-            if (selectedAction > SelectedAction.ViewMap)
+            if (!CanUseItem)
             {
-                selectedAction = SelectedAction.UseItem;
+                selectedAction++;
             }
         }
     }
@@ -119,46 +129,55 @@ public class TurnManager : MonoBehaviour
         if (isOnCooldown) return;
         float verticalDirection = context.ReadValue<Vector2>().y;
         float horizontalDirection = context.ReadValue<Vector2>().x;
-        if (isSelectingItem)
+        switch (selectedAction)
         {
-            // Handle item selection navigation
-        }
-        else
-        {
-            switch (selectedAction)
-            {
-                case SelectedAction.BluffSelection:
-                case SelectedAction.BluffCalling:
-                    yesNoSelection = !yesNoSelection;
-                    break;
-                case SelectedAction.Bluff:
-                    if (verticalDirection > 0) verticalDirection = 1;
-                    else if (verticalDirection < 0) verticalDirection = -1;
-                    if (amountToBluff == null)
-                        amountToBluff = 1;
-                    amountToBluff += (int)verticalDirection;
-                    if (amountToBluff < 1) amountToBluff = 1;
-                    if (amountToBluff > 6) amountToBluff = 6;
-                    break;
-                case SelectedAction.SelectPath:
-                    if (horizontalDirection > 0) horizontalDirection = 1;
-                    else if (horizontalDirection < 0) horizontalDirection = -1;
-                    pathChosen += (int)horizontalDirection;
-                    if (pathChosen < 0) pathChosen = 0;
-                    if (pathChosen >= CurrentPlayer.CurrentCell.nextCells.Count)
-                        pathChosen = CurrentPlayer.CurrentCell.nextCells.Count - 1;
-                    break;
-                default:
-                    if (verticalDirection > 0)
-                    {
-                        CycleUpOnOption();
-                    }
-                    else if (verticalDirection < 0)
-                    {
-                        CycleDownOnOption();
-                    }
-                    break;
-            }
+            case SelectedAction.BluffSelection:
+            case SelectedAction.BluffCalling:
+                yesNoSelection = !yesNoSelection;
+                break;
+            case SelectedAction.Bluff:
+                if (verticalDirection > 0) verticalDirection = 1;
+                else if (verticalDirection < 0) verticalDirection = -1;
+                if (amountToBluff == null)
+                    amountToBluff = 1;
+                amountToBluff += (int)verticalDirection;
+                if (amountToBluff < 1) amountToBluff = 1;
+                if (amountToBluff > 6) amountToBluff = 6;
+                break;
+            case SelectedAction.SelectPath:
+                if (horizontalDirection > 0) horizontalDirection = 1;
+                else if (horizontalDirection < 0) horizontalDirection = -1;
+                pathChosen += (int)horizontalDirection;
+                if (pathChosen < 0) pathChosen = 0;
+                if (pathChosen >= CurrentPlayer.CurrentCell.nextCells.Count)
+                    pathChosen = CurrentPlayer.CurrentCell.nextCells.Count - 1;
+                break;
+            case SelectedAction.SelectItem:
+                if (horizontalDirection > 0) horizontalDirection = 1;
+                else if (horizontalDirection < 0) horizontalDirection = -1;
+                selectedItemIndex += (int)horizontalDirection;
+                if (selectedItemIndex < 0) selectedItemIndex = 0;
+                if (selectedItemIndex >= CurrentPlayer.Inventory.Count)
+                    selectedItemIndex = CurrentPlayer.Inventory.Count - 1;
+                break;
+            case SelectedAction.SelectItemTarget:
+                if (horizontalDirection > 0) horizontalDirection = 1;
+                else if (horizontalDirection < 0) horizontalDirection = -1;
+                selectedPlayerIndex += (int)horizontalDirection;
+                if (selectedPlayerIndex < 0) selectedPlayerIndex = 0;
+                if (selectedPlayerIndex >= Players.Length)
+                    selectedPlayerIndex = Players.Length - 1;
+                break;
+            default:
+                if (verticalDirection > 0)
+                {
+                    CycleUpOnOption();
+                }
+                else if (verticalDirection < 0)
+                {
+                    CycleDownOnOption();
+                }
+                break;
         }
         StartCoroutine(ActionCooldown(0.1f));
     }
@@ -166,74 +185,91 @@ public class TurnManager : MonoBehaviour
     public void OnSubmit(CallbackContext context)
     {
         if (isOnCooldown) return;
-        if (isSelectingItem)
+        switch (selectedAction)
         {
-            // Handle item selection confirmation
-        }
-        else
-        {
-            switch (selectedAction)
-            {
-                case SelectedAction.UseItem:
-                    if (canUseItem)
-                    {
-                        isSelectingItem = true;
-                    }
-                    break;
-                case SelectedAction.Move:
-                    amountToMove = UnityEngine.Random.Range(1, 7);
-                    Debug.Log($"{CurrentPlayer.name} rolled a {amountToMove}.");
-                    selectedAction = SelectedAction.BluffSelection;
+            case SelectedAction.UseItem:
+                if (CanUseItem)
+                {
+                    selectedAction = SelectedAction.SelectItem;
                     OnChangeOptionCallback();
-                    break;
-                case SelectedAction.ViewMap:
-                    // Implement map viewing
-                    break;
-                case SelectedAction.BluffSelection: // Player chooses whether to bluff
-                    if (yesNoSelection)
-                    {
-                        selectedAction = SelectedAction.Bluff;
-                        yesNoSelection = false;
-                        OnChangeOptionCallback();
-                    }
-                    else
-                    {
-                        EndTurn();
-                    }
-                    break;
-                case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
-                    Debug.Log($"{CurrentPlayer.name} is bluffing with {amountToBluff}.");
-                    selectedAction = SelectedAction.BluffCalling;
-                    int index = UnityEngine.Random.Range(0, players.Length - 1);
-                    callingPlayer = players.Where(player => player != CurrentPlayer).ToList()[index];
+                }
+                break;
+            case SelectedAction.Move:
+                amountToMove = UnityEngine.Random.Range(1, 7);
+                Debug.Log($"{CurrentPlayer.playerName} rolled a {amountToMove}.");
+                selectedAction = SelectedAction.BluffSelection;
+                OnChangeOptionCallback();
+                break;
+            case SelectedAction.ViewMap:
+                // Implement map viewing
+                break;
+            case SelectedAction.BluffSelection: // Player chooses whether to bluff
+                if (yesNoSelection)
+                {
+                    selectedAction = SelectedAction.Bluff;
+                    yesNoSelection = false;
                     OnChangeOptionCallback();
-                    break;
-                case SelectedAction.BluffCalling: // Player B decides whether to call the bluff
-                    if (yesNoSelection)
-                    {
-                        Debug.Log($"{callingPlayer.name} called a bluff");
-                        if (amountToBluff.HasValue)
-                        {
-                            amountToMove = -amountToBluff.Value;
-                            Debug.Log($"{CurrentPlayer.name} will move {amountToMove} due to the successful bluff call.");
-                        }
-                        else
-                        {
-                            callingPlayer.SubtractMoney(unsuccessfulBluffPenalty);
-                            Debug.Log($"{callingPlayer.name} called a bluff unsuccessfully and loses {unsuccessfulBluffPenalty} money.");
-                        }
-                    }
-                    else
-                    {
-                        amountToMove = amountToBluff.Value;
-                        Debug.Log($"{callingPlayer.name} did not call the bluff and {CurrentPlayer.name} will move {amountToMove}.");
-                    }
+                }
+                else
+                {
                     EndTurn();
-                    break;
-                case SelectedAction.SelectPath:
-                    CurrentPlayer.PathIndex = pathChosen;
-                    break;
-            }
+                }
+                break;
+            case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
+                Debug.Log($"{CurrentPlayer.playerName} is bluffing with {amountToBluff}.");
+                selectedAction = SelectedAction.BluffCalling;
+                int index = UnityEngine.Random.Range(0, Players.Length - 1);
+                callingPlayer = Players.Where(player => player != CurrentPlayer).ToList()[index];
+                OnChangeOptionCallback();
+                break;
+            case SelectedAction.BluffCalling: // Player B decides whether to call the bluff
+                if (yesNoSelection)
+                {
+                    Debug.Log($"{callingPlayer.playerName} called a bluff");
+                    if (amountToBluff.HasValue)
+                    {
+                        amountToMove = -amountToBluff.Value;
+                        Debug.Log($"{CurrentPlayer.playerName} will move {amountToMove} due to the successful bluff call.");
+                    }
+                    else
+                    {
+                        callingPlayer.SubtractMoney(unsuccessfulBluffPenalty);
+                        Debug.Log($"{callingPlayer.playerName} called a bluff unsuccessfully and loses {unsuccessfulBluffPenalty} money.");
+                    }
+                }
+                else
+                {
+                    amountToMove = amountToBluff.Value;
+                    Debug.Log($"{callingPlayer.playerName} did not call the bluff and {CurrentPlayer.playerName} will move {amountToMove}.");
+                }
+                EndTurn();
+                break;
+            case SelectedAction.SelectPath:
+                CurrentPlayer.PathIndex = pathChosen;
+                break;
+            case SelectedAction.SelectItem:
+                IItem itemToUse = CurrentPlayer.Inventory[selectedItemIndex];
+                Debug.Log($"{CurrentPlayer.playerName} will use {itemToUse}.");
+                if (itemToUse.target == ItemTarget.None)
+                {
+                    CurrentPlayer.UseItem(selectedItemIndex, null);
+                    canUseItem = false;
+                    selectedAction = SelectedAction.Move;
+                }
+                else
+                {
+                    selectedAction = SelectedAction.SelectItemTarget;
+                }
+                OnChangeOptionCallback();
+                break;
+            case SelectedAction.SelectItemTarget:
+                Player targetPlayer = Players[selectedPlayerIndex];
+                CurrentPlayer.UseItem(selectedItemIndex, targetPlayer);
+                Debug.Log($"{CurrentPlayer.playerName} used item on {targetPlayer.playerName}.");
+                canUseItem = false;
+                selectedAction = SelectedAction.Move;
+                OnChangeOptionCallback();
+                break;
         }
         StartCoroutine(ActionCooldown(0.2f));
     }
@@ -261,19 +297,18 @@ public class TurnManager : MonoBehaviour
             endOfTurn = true;
             OnChangeOptionCallback();
         }
-        Debug.Log($"{CurrentPlayer.name}'s turn has ended.");
+        Debug.Log($"{CurrentPlayer.playerName}'s turn has ended.");
         NextTurn();
     }
 
     private void NextTurn()
     {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.Length;
+        currentPlayerIndex = (currentPlayerIndex + 1) % Players.Length;
         if (currentPlayerIndex == 0)
         {
             turnCount++;
         }
         canUseItem = true;
-        isSelectingItem = false;
         selectedAction = SelectedAction.Move;
         yesNoSelection = false;
         amountToBluff = null;

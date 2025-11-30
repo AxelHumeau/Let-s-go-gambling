@@ -38,7 +38,7 @@ public class UITurnOptionDisplayer : MonoBehaviour
             case SelectedAction.UseItem:
             case SelectedAction.Move:
             case SelectedAction.ViewMap:
-                textMeshPro.text = $"{turnManager.CurrentPlayer.name}, choose an option:";
+                textMeshPro.text = $"{turnManager.CurrentPlayer.playerName}, choose an option:";
                 optionButtons.Add(CreateOptionButton("Use an Item", new Vector2(0, -150)));
                 optionButtons.Add(CreateOptionButton("Move", new Vector2(0, -300)));
                 optionButtons.Add(CreateOptionButton("View Map", new Vector2(0, -450)));
@@ -53,13 +53,26 @@ public class UITurnOptionDisplayer : MonoBehaviour
                 optionButtons.Add(CreateOptionButton("1", new Vector2(0, -150)));
                 break;
             case SelectedAction.BluffCalling:
-                textMeshPro.text = $"{turnManager.CallingPlayer.name}, {turnManager.CurrentPlayer.name} could be bluffing, do you want to call them out?";
+                textMeshPro.text = $"{turnManager.CallingPlayer.playerName}, {turnManager.CurrentPlayer.playerName} could be bluffing, do you want to call them out?";
                 optionButtons.Add(CreateOptionButton("Yes", new Vector2(0, -150)));
                 optionButtons.Add(CreateOptionButton("No", new Vector2(0, -300)));
                 break;
             case SelectedAction.SelectPath:
                 textMeshPro.text = "Select your path";
                 optionButtons.Add(CreateOptionButton("0", new Vector2(0, -150)));
+                break;
+            case SelectedAction.SelectItem:
+                textMeshPro.text = "Select an item to use:";
+                int xOffset = 0;
+                foreach (var item in turnManager.CurrentPlayer.Inventory)
+                {
+                    optionButtons.Add(CreateOptionButton(item.type.ToString(), new Vector2(xOffset, -150)));
+                    xOffset += 150;
+                }
+                break;
+            case SelectedAction.SelectItemTarget:
+                textMeshPro.text = "Select a target for your item:";
+                optionButtons.Add(CreateOptionButton("You", new Vector2(0, -150)));
                 break;
         }
         isUpdating = false;
@@ -101,6 +114,13 @@ public class UITurnOptionDisplayer : MonoBehaviour
                 return;
             case SelectedAction.SelectPath:
                 optionButtons[0].GetComponent<TMP_Text>().text = turnManager.PathChosen.ToString();
+                return;
+            case SelectedAction.SelectItem:
+                index = turnManager.SelectedItemIndex;
+                break;
+            case SelectedAction.SelectItemTarget:
+                Player selectedPlayer = turnManager.Players[turnManager.SelectedItemTargetIndex];
+                optionButtons[0].GetComponent<TMP_Text>().text = selectedPlayer == turnManager.CurrentPlayer ? "You" : selectedPlayer.playerName;
                 return;
         }
         ClearHoverEffect();

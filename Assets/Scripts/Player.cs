@@ -1,22 +1,27 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public enum Effect { Double, Half, LuckIncrease, LuckDecrease, NoBluff, MineResistant }
-public enum Item { Juggernaut, LuckyCharm, DoubleDice, LesserDice, TruthLasso, CurseDoll, Krach, TeleportXCellAhead, SwapPlayer, SwapCells, TeleportToStocksCell, StealItem }
 
 public class Player : MonoBehaviour
 {
+    public string playerName;
     private int money = 50;
     public Cell CurrentCell;
     private Dictionary<Effect, int> activeEffects = new Dictionary<Effect, int>();
-    private List<Item> inventory = new List<Item>();
+    private List<IItem> inventory = new List<IItem>();
     private int stocksOwned = 0;
     private bool isMoving = false;
     private int? pathIndex = null;
     private bool waitingForPathChoice = false;
 
+    public List<IItem> Inventory
+    {
+        get { return inventory; }
+    }
     public bool WaitingForPathChoice
     {
         get { return waitingForPathChoice; }
@@ -56,9 +61,19 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void AddItem(Item item)
+    public bool AddItem(IItem item)
     {
+        if (inventory.Count >= 4) return false;
         inventory.Add(item);
+        return true;
+    }
+
+    public void UseItem(int index, Player target)
+    {
+        if (index < 0 || index >= inventory.Count) return;
+        IItem item = inventory[index];
+        item.Use(target);
+        inventory.RemoveAt(index);
     }
 
     public void BuyStock()
