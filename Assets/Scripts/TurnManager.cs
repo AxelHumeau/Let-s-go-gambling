@@ -213,16 +213,9 @@ public class TurnManager : MonoBehaviour
                 OnChangeOptionCallback();
                 break;
             case SelectedAction.BluffSelection: // Player chooses whether to bluff
-                if (yesNoSelection)
-                {
-                    selectedAction = SelectedAction.Bluff;
-                    yesNoSelection = false;
-                    OnChangeOptionCallback();
-                }
-                else
-                {
-                    EndTurn();
-                }
+                selectedAction = SelectedAction.Bluff;
+                yesNoSelection = false;
+                OnChangeOptionCallback();
                 break;
             case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
                 Debug.Log($"{CurrentPlayer.playerName} is bluffing with {amountToBluff}.");
@@ -248,8 +241,9 @@ public class TurnManager : MonoBehaviour
                 }
                 else
                 {
-                    amountToMove = amountToBluff.Value;
-                    Debug.Log($"{callingPlayer.playerName} did not call the bluff and {CurrentPlayer.playerName} will move {amountToMove}.");
+                    if (amountToBluff.HasValue)
+                        amountToMove = amountToBluff.Value;
+                    Debug.Log($"{callingPlayer.playerName} did not call a bluff and {CurrentPlayer.playerName} will move {amountToMove}.");
                 }
                 EndTurn();
                 break;

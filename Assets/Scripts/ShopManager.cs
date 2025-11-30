@@ -91,6 +91,7 @@ public class ShopManager : MonoBehaviour
         selectedOption = 0;
         this.player = player;
         this.closeCallback = closeCallback;
+        ItemsForSale.Clear();
         for (int i = 0; i < 4; i++)
 		{
             int randomIndex = UnityEngine.Random.Range(0, possibleItems.Count);
