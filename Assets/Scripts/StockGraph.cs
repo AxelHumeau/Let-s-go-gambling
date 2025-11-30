@@ -293,7 +293,7 @@ public class StockGraph : MonoBehaviour
         }
         if (_playerValueText != null)
         {
-            int stocksOwned = 1000;
+            int stocksOwned = FindAnyObjectByType<TurnManager>().CurrentPlayer.GetStocksOwned();
             float stocksOwnedValue = StockManager.Instance.GetCurrentValue() * stocksOwned;
             Color valueColor = stocksOwnedValue >= 0 ? _bullishColor : _bearishColor;
             _playerValueText.text = $"{stocksOwned} Stocks (${stocksOwnedValue:F2})";

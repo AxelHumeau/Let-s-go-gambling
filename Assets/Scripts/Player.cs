@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     public Cell CurrentCell;
     private Dictionary<Effect, int> activeEffects = new Dictionary<Effect, int>();
     private List<IItem> inventory = new List<IItem>();
-    private int stocksOwned = 0;
+    private int _stocksOwned = 0;
     private bool isMoving = false;
     private int? pathIndex = null;
     private bool waitingForPathChoice = false;
@@ -48,6 +48,21 @@ public class Player : MonoBehaviour
     {
         money -= amount;
         if (money < 0) money = 0;
+    }
+
+    public int GetStocksOwned() {
+        return _stocksOwned;
+    }
+
+    public void AddStocks(int amount)
+    {
+        _stocksOwned += amount;
+    }
+
+    public void RemoveStocks(int amount)
+    {
+        _stocksOwned -= amount;
+        if (_stocksOwned < 0) _stocksOwned = 0;
     }
 
     public void AddEffect(Effect effect, int duration)
@@ -100,8 +115,7 @@ public class Player : MonoBehaviour
 
     public int GetStocksValue()
     {
-        // To implement
-        return 0;
+        return Mathf.RoundToInt(StockManager.Instance.GetCurrentValue() * _stocksOwned);
     }
 
     private IEnumerator Move(int amount)

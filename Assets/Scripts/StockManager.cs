@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,11 +7,16 @@ public class StockManager : MonoBehaviour
     private static StockManager _instance;
 
     [SerializeField] private StockGraph _stockGraph;
+    [SerializeField] private UIStockMenu _uiStockMenu;
 
     private List<StockGraph.CandlestickData> _stockData = new();
     private float _currentPrice = 100f;
     private float _updateTimer = 0f;
     private float _updateInterval = 0.5f;
+
+    private bool _isOpen = false;
+    private Player _player;
+    private Action _closeCallback;
 
     public static StockManager Instance
     {
@@ -42,26 +48,17 @@ public class StockManager : MonoBehaviour
 
     void Start()
     {
+        _uiStockMenu.gameObject.SetActive(false);
         GenerateStartData(50);
     }
 
-    void Update()
-    {
-        _updateTimer += Time.deltaTime;
-        if (_updateTimer >= _updateInterval)
-        {
-            _updateTimer = 0f;
-            Step();
-        }
-    }
-    
     private void GenerateAndAddNewCandle()
     {
-        float randomChange = Random.Range(-5f, 5f);
+        float randomChange = UnityEngine.Random.Range(-5f, 5f);
         float open = _currentPrice;
         float close = _currentPrice + randomChange;
-        float high = Mathf.Max(open, close) + Random.Range(0f, 3f);
-        float low = Mathf.Min(open, close) - Random.Range(0f, 3f);
+        float high = Mathf.Max(open, close) + UnityEngine.Random.Range(0f, 3f);
+        float low = Mathf.Min(open, close) - UnityEngine.Random.Range(0f, 3f);
 
         StockGraph.CandlestickData newCandle = new StockGraph.CandlestickData
         {
@@ -74,20 +71,18 @@ public class StockManager : MonoBehaviour
 
         _currentPrice = close;
         _stockData.Add(newCandle);
-        
+
         if (_stockGraph != null)
         {
             _stockGraph.AddCandle(newCandle);
         }
     }
 
-    // Public method to get the current stock value
     public float GetCurrentValue()
     {
         return _currentPrice;
     }
 
-    // Public method to generate one new value and update the graph
     public void Step()
     {
         GenerateAndAddNewCandle();
@@ -99,14 +94,14 @@ public class StockManager : MonoBehaviour
         _currentPrice = 100f;
 
         List<StockGraph.CandlestickData> initialData = new();
-        
+
         for (int i = 0; i < count; i++)
         {
-            float randomChange = Random.Range(-5f, 5f);
+            float randomChange = UnityEngine.Random.Range(-5f, 5f);
             float open = _currentPrice;
             float close = _currentPrice + randomChange;
-            float high = Mathf.Max(open, close) + Random.Range(0f, 3f);
-            float low = Mathf.Min(open, close) - Random.Range(0f, 3f);
+            float high = Mathf.Max(open, close) + UnityEngine.Random.Range(0f, 3f);
+            float low = Mathf.Min(open, close) - UnityEngine.Random.Range(0f, 3f);
 
             StockGraph.CandlestickData candle = new StockGraph.CandlestickData
             {
@@ -116,15 +111,42 @@ public class StockManager : MonoBehaviour
                 low = low,
                 timestamp = i
             };
-            
+
             _stockData.Add(candle);
             initialData.Add(candle);
             _currentPrice = close;
         }
-        
+
         if (_stockGraph != null)
         {
             _stockGraph.UpdateGraph(initialData);
         }
+    }
+
+    public void UpdateGraph() {
+        _stockGraph.UpdateGraph(_stockData);
+    }
+
+    public void OpenMenu(Action closeCallback)
+    {
+        _isOpen = true;
+        _player = FindAnyObjectByType<TurnManager>().CurrentPlayer;
+        print("Opening stock menu for player: " + _player.playerName);
+        _closeCallback = closeCallback;
+        _uiStockMenu.gameObject.SetActive(true);
+        _uiStockMenu.SetPlayer(_player);
+    }
+
+    public void CloseMenu()
+    {
+        _closeCallback?.Invoke();
+        _isOpen = false;
+        _player = null;
+        _closeCallback = null;
+        _uiStockMenu.gameObject.SetActive(false);
+    }
+
+    public bool IsOpen {
+        get { return _isOpen; }
     }
 }
