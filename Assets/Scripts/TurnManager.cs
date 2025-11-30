@@ -87,7 +87,7 @@ public class TurnManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        StockManager.Instance.UpdateGraph();
     }
 
     // Update is called once per frame
@@ -330,6 +330,8 @@ public class TurnManager : MonoBehaviour
         if (currentPlayerIndex == 0)
         {
             turnCount++;
+            StockManager.Instance.Step();
+            StockManager.Instance.UpdateGraph();
         }
         if (turnCount >= turnLimit)
         {
@@ -349,6 +351,7 @@ public class TurnManager : MonoBehaviour
         pathChosen = 0;
         endOfTurn = false;
         OnChangeOptionCallback();
+        StockManager.Instance.UpdateGraph();
     }
 
     public void PauseForCellAction(Cell cell)
