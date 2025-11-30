@@ -6,6 +6,7 @@ using System;
 
 public class BlackJackManager : MonoBehaviour
 {
+    public static int betAmount = 0;
     private CardDeck _deck;
     public CardHand playerHand;
     public CardHand dealerHand;
@@ -20,23 +21,27 @@ public class BlackJackManager : MonoBehaviour
 
     bool _hasPlayerPlayed = false;
 
-    public static event Action<string> OnGameEnd;
+    public static Action<string> OnGameEnd;
     public static event Action OnGameStart;
 
-    void Start() {
+    void Start()
+    {
         InitializeGame();
         SetupUI();
     }
 
-    void SetupUI() {
+    void SetupUI()
+    {
         if (hitButton != null)
             hitButton.onClick.AddListener(PlayerHit);
         if (standButton != null)
             standButton.onClick.AddListener(PlayerStand);
     }
 
-    public void InitializeGame() {
-        if (_deck == null) {
+    public void InitializeGame()
+    {
+        if (_deck == null)
+        {
             GameObject deckObj = new("Deck");
             deckObj.transform.SetParent(transform);
             _deck = deckObj.AddComponent<CardDeck>();
@@ -44,7 +49,8 @@ public class BlackJackManager : MonoBehaviour
         StartCoroutine(StartNewGame());
     }
 
-    public IEnumerator StartNewGame() {
+    public IEnumerator StartNewGame()
+    {
         playerHand.Clear();
         dealerHand.Clear();
         _deck.Shuffle();
@@ -58,16 +64,16 @@ public class BlackJackManager : MonoBehaviour
 
         SetButtonsInteractable(false);
 
-        playerHand.AddCard(_deck.DrawCard(), true, playerHand.GetCardCount());
+        playerHand.AddCard(_deck.DrawCard(), true, playerHand.GetCardCount() + 10);
         yield return new WaitForSeconds(0.5f);
 
-        dealerHand.AddCard(_deck.DrawCard(), true, dealerHand.GetCardCount());
+        dealerHand.AddCard(_deck.DrawCard(), true, dealerHand.GetCardCount() + 10);
         yield return new WaitForSeconds(0.5f);
 
-        playerHand.AddCard(_deck.DrawCard(), true, playerHand.GetCardCount());
+        playerHand.AddCard(_deck.DrawCard(), true, playerHand.GetCardCount() + 10);
         yield return new WaitForSeconds(0.5f);
 
-        dealerHand.AddCard(_deck.DrawCard(), false, dealerHand.GetCardCount());
+        dealerHand.AddCard(_deck.DrawCard(), false, dealerHand.GetCardCount() + 10);
 
         OnGameStart?.Invoke();
 
@@ -77,10 +83,12 @@ public class BlackJackManager : MonoBehaviour
             if (dealerHand.IsBlackjack())
             {
                 EndGame("Push! Both have Blackjack!");
+                betAmount = 0;
             }
             else
             {
                 EndGame("Blackjack! You win!");
+                betAmount = (int)(betAmount * 2.5);
             }
             yield break;
         }
@@ -90,16 +98,18 @@ public class BlackJackManager : MonoBehaviour
         StartCoroutine(PlayerTurn());
     }
 
-    IEnumerator PlayerTurn() {
+    IEnumerator PlayerTurn()
+    {
         _hasPlayerPlayed = false;
         yield return new WaitUntil(() => _hasPlayerPlayed);
     }
 
-    public void PlayerHit() {
+    public void PlayerHit()
+    {
         if (!_gameInProgress || _dealerTurn)
             return;
 
-        playerHand.AddCard(_deck.DrawCard(), true, playerHand.GetCardCount());
+        playerHand.AddCard(_deck.DrawCard(), true, playerHand.GetCardCount() + 10);
 
         int playerValue = playerHand.GetValue();
 
@@ -115,7 +125,8 @@ public class BlackJackManager : MonoBehaviour
         }
     }
 
-    public void PlayerStand() {
+    public void PlayerStand()
+    {
         if (!_gameInProgress || _dealerTurn)
             return;
 
@@ -124,21 +135,24 @@ public class BlackJackManager : MonoBehaviour
         StartCoroutine(DealerPlay());
     }
 
-    IEnumerator DealerPlay() {
+    IEnumerator DealerPlay()
+    {
         SetButtonsInteractable(false);
 
         yield return StartCoroutine(RevealDealerHiddenCard());
         yield return new WaitForSeconds(0.5f);
 
-        while (dealerHand.GetValue() < 17) {
-            dealerHand.AddCard(_deck.DrawCard(), true, dealerHand.GetCardCount());
+        while (dealerHand.GetValue() < 17)
+        {
+            dealerHand.AddCard(_deck.DrawCard(), true, dealerHand.GetCardCount() + 10);
             yield return new WaitForSeconds(1f);
         }
 
         DetermineWinner();
     }
 
-    IEnumerator RevealDealerHiddenCard() {
+    IEnumerator RevealDealerHiddenCard()
+    {
         if (dealerHand.transform.childCount > 0)
         {
             Transform lastCard = dealerHand.transform.GetChild(dealerHand.transform.childCount - 1);
@@ -156,21 +170,44 @@ public class BlackJackManager : MonoBehaviour
         int playerValue = playerHand.GetValue();
         int dealerValue = dealerHand.GetValue();
 
-        if (dealerValue > 21) {
+        if (playerValue == 21 && dealerValue > 21)
+        {
+            EndGame("Blackjack! You win!");
+            betAmount = (int)(betAmount * 2.5);
+        }
+        else if (playerValue == 21 && dealerValue == 21)
+        {
+            EndGame("Push! Both have Blackjack!");
+            betAmount = 0;
+        }
+        else if (playerValue > 21)
+        {
+            EndGame($"Bust! You exceeded 21. Dealer wins with {dealerValue}.");
+            betAmount = 0;
+        }
+        else if (dealerValue > 21)
+        {
             EndGame($"Dealer busts! You win with {playerValue}!");
+            betAmount *= 2;
         }
-        else if (playerValue > dealerValue) {
+        else if (playerValue > dealerValue)
+        {
             EndGame($"You win! {playerValue} vs {dealerValue}");
+            betAmount *= 2;
         }
-        else if (dealerValue > playerValue) {
+        else if (dealerValue > playerValue)
+        {
             EndGame($"Dealer wins! {dealerValue} vs {playerValue}");
+            betAmount = 0;
         }
-        else {
+        else
+        {
             EndGame($"Push! Tie at {playerValue}");
         }
     }
 
-    void EndGame(string message) {
+    void EndGame(string message)
+    {
         _gameInProgress = false;
         _dealerTurn = false;
 
@@ -181,13 +218,20 @@ public class BlackJackManager : MonoBehaviour
 
         SetButtonsInteractable(false);
 
-        OnGameEnd?.Invoke(message);
+        StartCoroutine(DelayBeforeEnd(5f, message));
     }
 
-    void SetButtonsInteractable(bool interactable) {
+    void SetButtonsInteractable(bool interactable)
+    {
         if (hitButton != null)
             hitButton.interactable = interactable;
         if (standButton != null)
             standButton.interactable = interactable;
+    }
+
+    IEnumerator DelayBeforeEnd(float delay, string message)
+    {
+        yield return new WaitForSeconds(delay);
+        OnGameEnd?.Invoke(message);
     }
 }

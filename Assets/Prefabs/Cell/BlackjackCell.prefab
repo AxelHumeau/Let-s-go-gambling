@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 599598945711655192}
   - component: {fileID: 5434911124007204220}
   - component: {fileID: 3292119580469241524}
+  - component: {fileID: -4514999868132044733}
   m_Layer: 0
   m_Name: BlackjackCell
   m_TagString: Untagged
@@ -79,7 +80,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: -1400134510, guid: 820d64f6024e78a44aae759bed452c65, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -105,3 +106,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   nextCells: []
   previousCells: []
+--- !u!114 &-4514999868132044733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7240450862478990731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d7227a68884189419ee87c7f6836be8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlackjackCell

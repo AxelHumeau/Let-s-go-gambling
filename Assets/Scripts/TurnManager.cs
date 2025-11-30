@@ -213,7 +213,17 @@ public class TurnManager : MonoBehaviour
                 OnChangeOptionCallback();
                 break;
             case SelectedAction.BluffSelection: // Player chooses whether to bluff
-                selectedAction = SelectedAction.Bluff;
+                if (yesNoSelection)
+                {
+                    selectedAction = SelectedAction.Bluff;
+                    amountToBluff = 1;
+                }
+                else
+                {
+                    selectedAction = SelectedAction.BluffCalling;
+                    int index2 = UnityEngine.Random.Range(0, Players.Count - 1);
+                    callingPlayer = Players.Where(player => player != CurrentPlayer).ToList()[index2];
+                }
                 yesNoSelection = false;
                 OnChangeOptionCallback();
                 break;

@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     public string playerName;
     public Cell CurrentCell;
     public Color playerColor;
-    private int money = 50;
+    private int money = 100;
     private Dictionary<Effect, int> activeEffects = new Dictionary<Effect, int>();
     private List<IItem> inventory = new List<IItem>();
     private int stocksOwned = 0;
