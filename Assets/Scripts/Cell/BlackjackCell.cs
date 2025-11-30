@@ -10,11 +10,13 @@ public class BlackjackCell : MonoBehaviour, ICellType
     {
         int amount = Mathf.Min(100, player.Money);
         BlackJackManager.betAmount = amount;
+        player.SubtractMoney(amount);
         FindAnyObjectByType<TurnManager>().PauseForCellAction(cell);
         SceneManager.LoadScene("BlackJack", LoadSceneMode.Additive);
         BlackJackManager.OnGameEnd = (_) =>
         {
             SceneManager.UnloadSceneAsync("BlackJack");
+            player.AddMoney(BlackJackManager.betAmount);
             FindAnyObjectByType<TurnManager>().CompleteCellAction(cell);
         };
     }

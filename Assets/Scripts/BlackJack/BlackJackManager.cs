@@ -170,7 +170,7 @@ public class BlackJackManager : MonoBehaviour
         int playerValue = playerHand.GetValue();
         int dealerValue = dealerHand.GetValue();
 
-        if (playerValue == 21 && dealerValue > 21)
+        if (playerValue == 21 && dealerValue < 21)
         {
             EndGame("Blackjack! You win!");
             betAmount = (int)(betAmount * 2.5);
