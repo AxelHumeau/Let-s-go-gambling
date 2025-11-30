@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public interface ICellType
 {
-    public string GetCellType();
-    public void OnStopOnCell(Cell cell);
-    public void OnPassOnCell(Cell cell);
+    public string GetCellName();
+    public void OnStopOnCell(Cell cell, Player player);
+    public void OnPassOnCell(Cell cell, Player player);
 }
