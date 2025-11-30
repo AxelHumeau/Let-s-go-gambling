@@ -20,4 +20,14 @@ public class Cell : MonoBehaviour
     {
 
     }
+
+    public void OnStopOnCell(Player player)
+    {
+        cellType.OnStopOnCell(this, player);
+    }
+
+    public void OnPassOnCell(Player player)
+    {
+        cellType.OnPassOnCell(this, player);
+    }
 }

@@ -10,6 +10,13 @@ public class PlayerDebug : MonoBehaviour
     public bool hasLuckDecrease = false;
     public bool hasNoBluff = false;
     public bool hasMineResistant = false;
+    public int givenMoney = 0;
+    public int givenDoubleDice = 0;
+    public int givenHalfDice = 0;
+    public int givenStealItem = 0;
+    public int givenTruthLasso = 0;
+    public int givenSwapPlayer = 0;
+    public int givenJuggernaut = 0;
 
     // Use this for initialization
     void Start()
@@ -38,7 +45,27 @@ public class PlayerDebug : MonoBehaviour
         {
             player.AddEffect(Effect.MineResistant, 1);
         }
-	}
+        if (givenMoney != 0)
+        {
+            player.AddMoney(givenMoney);
+        }
+        for (int i = 0; i < givenDoubleDice; i++)
+        {
+            player.AddItem(new DoubleDice());
+        }
+        for (int i = 0; i < givenHalfDice; i++)
+        {
+            player.AddItem(new LesserDice());
+        }
+        for (int i = 0; i < givenStealItem; i++)
+            player.AddItem(new StealItem());
+        for (int i = 0; i < givenSwapPlayer; i++)
+            player.AddItem(new SwapPlayer());
+        for (int i = 0; i < givenTruthLasso; i++)
+            player.AddItem(new TruthLasso());
+        for (int i = 0; i < givenJuggernaut; i++)
+            player.AddItem(new Juggernaut());
+    }
 
 	// Update is called once per frame
 	void Update()
