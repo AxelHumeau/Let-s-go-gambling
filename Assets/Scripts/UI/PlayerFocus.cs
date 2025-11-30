@@ -16,6 +16,10 @@ public class PlayerFocus : MonoBehaviour
 
     void Update()
     {
+        if (turnManager.SelectedAction == SelectedAction.FreeCam)
+        {
+            return;
+        }
         Player toFollow = turnManager.CurrentPlayer;
         if (turnManager.SelectedAction == SelectedAction.SelectItemTarget)
         {

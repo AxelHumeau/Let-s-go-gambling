@@ -33,6 +33,11 @@ public class UITurnOptionDisplayer : MonoBehaviour
             textMeshPro.text = "";
             return;
         }
+        else if (turnManager.SelectedAction == SelectedAction.FreeCam)
+        {
+            textMeshPro.text = $"Press 'Esc' to go back.";
+            return;
+        }
         switch (turnManager.SelectedAction)
         {
             case SelectedAction.UseItem:

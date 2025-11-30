@@ -6,11 +6,12 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 
-public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget, Shop }
+public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget, Shop, FreeCam }
 
 public class TurnManager : MonoBehaviour
 {
-    public Player[] Players;
+    public List<Player> Players;
+    public int turnLimit = 20;
     [SerializeField] private int unsuccessfulBluffPenalty = 10;
     private int currentPlayerIndex = 0;
     public Player CurrentPlayer
@@ -24,7 +25,6 @@ public class TurnManager : MonoBehaviour
     }
     private bool canUseItem = true;
     private SelectedAction selectedAction = SelectedAction.Move;
-    private bool isOnCooldown = false;
     private bool yesNoSelection = false; // false = No, true = Yes
     private int amountToMove = 1;
     private int? amountToBluff = null;
@@ -35,7 +35,12 @@ public class TurnManager : MonoBehaviour
     private int selectedItemIndex = 0;
     private int selectedPlayerIndex = 0;
     private Dictionary<Cell, bool> cellActionCompletionStatus = new Dictionary<Cell, bool>();
+    private bool isGameOver = false;
 
+    public bool IsGameOver
+    {
+        get { return isGameOver; }
+    }
     public bool WaitingForCellAction { get { return cellActionCompletionStatus.Any(pair  => pair.Value); } }
     public int SelectedItemIndex
     {
@@ -91,12 +96,6 @@ public class TurnManager : MonoBehaviour
 
     }
 
-    private IEnumerator ActionCooldown(float cooldownDuration)
-    {
-        isOnCooldown = true;
-        yield return new WaitForSeconds(cooldownDuration);
-        isOnCooldown = false;
-    }
 
     void CycleUpOnOption()
     {
@@ -129,7 +128,7 @@ public class TurnManager : MonoBehaviour
 
     public void OnNavigate(CallbackContext context)
     {
-        if (!context.started || WaitingForCellAction) return;
+        if (!context.started || WaitingForCellAction || selectedAction == SelectedAction.FreeCam) return;
         float verticalDirection = context.ReadValue<Vector2>().y;
         float horizontalDirection = context.ReadValue<Vector2>().x;
         switch (selectedAction)
@@ -168,8 +167,8 @@ public class TurnManager : MonoBehaviour
                 else if (horizontalDirection < 0) horizontalDirection = -1;
                 selectedPlayerIndex += (int)horizontalDirection;
                 if (selectedPlayerIndex < 0) selectedPlayerIndex = 0;
-                if (selectedPlayerIndex >= Players.Length)
-                    selectedPlayerIndex = Players.Length - 1;
+                if (selectedPlayerIndex >= Players.Count)
+                    selectedPlayerIndex = Players.Count - 1;
                 break;
             default:
                 if (verticalDirection > 0)
@@ -186,7 +185,7 @@ public class TurnManager : MonoBehaviour
 
     public void OnSubmit(CallbackContext context)
     {
-        if (!context.started || WaitingForCellAction) return;
+        if (!context.started || WaitingForCellAction || selectedAction == SelectedAction.FreeCam) return;
         switch (selectedAction)
         {
             case SelectedAction.UseItem:
@@ -210,24 +209,28 @@ public class TurnManager : MonoBehaviour
                 }
                 break;
             case SelectedAction.ViewMap:
-                // Implement map viewing
+                selectedAction = SelectedAction.FreeCam;
+                OnChangeOptionCallback();
                 break;
             case SelectedAction.BluffSelection: // Player chooses whether to bluff
                 if (yesNoSelection)
                 {
                     selectedAction = SelectedAction.Bluff;
-                    yesNoSelection = false;
-                    OnChangeOptionCallback();
+                    amountToBluff = 1;
                 }
                 else
                 {
-                    EndTurn();
+                    selectedAction = SelectedAction.BluffCalling;
+                    int index2 = UnityEngine.Random.Range(0, Players.Count - 1);
+                    callingPlayer = Players.Where(player => player != CurrentPlayer).ToList()[index2];
                 }
+                yesNoSelection = false;
+                OnChangeOptionCallback();
                 break;
             case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
                 Debug.Log($"{CurrentPlayer.playerName} is bluffing with {amountToBluff}.");
                 selectedAction = SelectedAction.BluffCalling;
-                int index = UnityEngine.Random.Range(0, Players.Length - 1);
+                int index = UnityEngine.Random.Range(0, Players.Count - 1);
                 callingPlayer = Players.Where(player => player != CurrentPlayer).ToList()[index];
                 OnChangeOptionCallback();
                 break;
@@ -248,8 +251,9 @@ public class TurnManager : MonoBehaviour
                 }
                 else
                 {
-                    amountToMove = amountToBluff.Value;
-                    Debug.Log($"{callingPlayer.playerName} did not call the bluff and {CurrentPlayer.playerName} will move {amountToMove}.");
+                    if (amountToBluff.HasValue)
+                        amountToMove = amountToBluff.Value;
+                    Debug.Log($"{callingPlayer.playerName} did not call a bluff and {CurrentPlayer.playerName} will move {amountToMove}.");
                 }
                 EndTurn();
                 break;
@@ -279,6 +283,15 @@ public class TurnManager : MonoBehaviour
                 selectedAction = SelectedAction.Move;
                 OnChangeOptionCallback();
                 break;
+        }
+    }
+
+    public void OnCancel(CallbackContext context)
+    {
+        if (selectedAction == SelectedAction.FreeCam)
+        {
+            selectedAction = SelectedAction.Move;
+            OnChangeOptionCallback();
         }
     }
 
@@ -313,12 +326,20 @@ public class TurnManager : MonoBehaviour
 
     private void NextTurn()
     {
-        currentPlayerIndex = (currentPlayerIndex + 1) % Players.Length;
+        currentPlayerIndex = (currentPlayerIndex + 1) % Players.Count;
         if (currentPlayerIndex == 0)
         {
             turnCount++;
             StockManager.Instance.Step();
             StockManager.Instance.UpdateGraph();
+        }
+        if (turnCount >= turnLimit)
+        {
+            Debug.Log("Turn limit reached. Game over.");
+            endOfTurn = true;
+            OnChangeOptionCallback();
+            isGameOver = true;
+            return;
         }
         canUseItem = true;
         selectedAction = SelectedAction.Move;
@@ -329,7 +350,6 @@ public class TurnManager : MonoBehaviour
         callingPlayer = null;
         pathChosen = 0;
         endOfTurn = false;
-        StartCoroutine(ActionCooldown(1.0f));
         OnChangeOptionCallback();
         StockManager.Instance.UpdateGraph();
     }

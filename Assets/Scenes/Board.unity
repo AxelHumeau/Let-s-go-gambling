@@ -2795,7 +2795,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1070497135}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa6b3239b6c9b2541be8169834fc5be2, type: 3}
   m_Name: 
@@ -2808,7 +2808,7 @@ MonoBehaviour:
   hasNoBluff: 0
   hasMineResistant: 0
   givenMoney: 0
-  givenDoubleDice: 0
+  givenDoubleDice: 4
   givenHalfDice: 0
   givenStealItem: 0
   givenTruthLasso: 0
@@ -3828,6 +3828,7 @@ MonoBehaviour:
   Players:
   - {fileID: 1874770674}
   - {fileID: 1070497137}
+  turnLimit: 20
   unsuccessfulBluffPenalty: 10
 --- !u!4 &1493074518
 Transform:
@@ -4341,7 +4342,7 @@ MonoBehaviour:
   hasNoBluff: 0
   hasMineResistant: 0
   givenMoney: 500
-  givenDoubleDice: 2
+  givenDoubleDice: 0
   givenHalfDice: 0
   givenStealItem: 0
   givenTruthLasso: 0
