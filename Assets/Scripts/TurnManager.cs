@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 
-public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget }
+public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget, Shop }
 
 public class TurnManager : MonoBehaviour
 {
@@ -33,7 +34,9 @@ public class TurnManager : MonoBehaviour
     private int pathChosen = 0;
     private int selectedItemIndex = 0;
     private int selectedPlayerIndex = 0;
+    private Dictionary<Cell, bool> cellActionCompletionStatus = new Dictionary<Cell, bool>();
 
+    public bool WaitingForCellAction { get { return cellActionCompletionStatus.Any(pair  => pair.Value); } }
     public int SelectedItemIndex
     {
         get { return selectedItemIndex; }
@@ -126,7 +129,7 @@ public class TurnManager : MonoBehaviour
 
     public void OnNavigate(CallbackContext context)
     {
-        if (isOnCooldown) return;
+        if (!context.started || WaitingForCellAction) return;
         float verticalDirection = context.ReadValue<Vector2>().y;
         float horizontalDirection = context.ReadValue<Vector2>().x;
         switch (selectedAction)
@@ -179,12 +182,11 @@ public class TurnManager : MonoBehaviour
                 }
                 break;
         }
-        StartCoroutine(ActionCooldown(0.1f));
     }
 
     public void OnSubmit(CallbackContext context)
     {
-        if (isOnCooldown) return;
+        if (!context.started || WaitingForCellAction) return;
         switch (selectedAction)
         {
             case SelectedAction.UseItem:
@@ -271,7 +273,6 @@ public class TurnManager : MonoBehaviour
                 OnChangeOptionCallback();
                 break;
         }
-        StartCoroutine(ActionCooldown(0.2f));
     }
 
     private void EndTurn()
@@ -297,6 +298,8 @@ public class TurnManager : MonoBehaviour
             endOfTurn = true;
             OnChangeOptionCallback();
         }
+        CurrentPlayer.CurrentCell.OnStopOnCell(CurrentPlayer);
+        yield return new WaitUntil(() => !WaitingForCellAction);
         Debug.Log($"{CurrentPlayer.playerName}'s turn has ended.");
         NextTurn();
     }
@@ -317,5 +320,18 @@ public class TurnManager : MonoBehaviour
         endOfTurn = false;
         StartCoroutine(ActionCooldown(1.0f));
         OnChangeOptionCallback();
+    }
+
+    public void PauseForCellAction(Cell cell)
+    {
+        cellActionCompletionStatus[cell] = true;
+    }
+
+    public void CompleteCellAction(Cell cell)
+    {
+        if (cellActionCompletionStatus.ContainsKey(cell))
+        {
+            cellActionCompletionStatus[cell] = false;
+        }
     }
 }

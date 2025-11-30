@@ -47,6 +47,7 @@ public class Player : MonoBehaviour
     public void SubtractMoney(int amount)
     {
         money -= amount;
+        if (money < 0) money = 0;
     }
 
     public void AddEffect(Effect effect, int duration)
