@@ -10,7 +10,7 @@ public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, Bluf
 
 public class TurnManager : MonoBehaviour
 {
-    public Player[] Players;
+    public List<Player> Players;
     public int turnLimit = 20;
     [SerializeField] private int unsuccessfulBluffPenalty = 10;
     private int currentPlayerIndex = 0;
@@ -167,8 +167,8 @@ public class TurnManager : MonoBehaviour
                 else if (horizontalDirection < 0) horizontalDirection = -1;
                 selectedPlayerIndex += (int)horizontalDirection;
                 if (selectedPlayerIndex < 0) selectedPlayerIndex = 0;
-                if (selectedPlayerIndex >= Players.Length)
-                    selectedPlayerIndex = Players.Length - 1;
+                if (selectedPlayerIndex >= Players.Count)
+                    selectedPlayerIndex = Players.Count - 1;
                 break;
             default:
                 if (verticalDirection > 0)
@@ -226,7 +226,7 @@ public class TurnManager : MonoBehaviour
             case SelectedAction.Bluff: // Player A selects amount to bluff, player B is randomly selected to call bluff
                 Debug.Log($"{CurrentPlayer.playerName} is bluffing with {amountToBluff}.");
                 selectedAction = SelectedAction.BluffCalling;
-                int index = UnityEngine.Random.Range(0, Players.Length - 1);
+                int index = UnityEngine.Random.Range(0, Players.Count - 1);
                 callingPlayer = Players.Where(player => player != CurrentPlayer).ToList()[index];
                 OnChangeOptionCallback();
                 break;
@@ -312,7 +312,7 @@ public class TurnManager : MonoBehaviour
 
     private void NextTurn()
     {
-        currentPlayerIndex = (currentPlayerIndex + 1) % Players.Length;
+        currentPlayerIndex = (currentPlayerIndex + 1) % Players.Count;
         if (currentPlayerIndex == 0)
         {
             turnCount++;

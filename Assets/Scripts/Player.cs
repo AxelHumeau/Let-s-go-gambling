@@ -9,8 +9,9 @@ public enum Effect { Double, Half, LuckIncrease, LuckDecrease, NoBluff, MineResi
 public class Player : MonoBehaviour
 {
     public string playerName;
-    private int money = 50;
     public Cell CurrentCell;
+    public Color playerColor;
+    private int money = 50;
     private Dictionary<Effect, int> activeEffects = new Dictionary<Effect, int>();
     private List<IItem> inventory = new List<IItem>();
     private int stocksOwned = 0;
@@ -174,7 +175,7 @@ public class Player : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        GetComponent<Renderer>().material.color = playerColor;
     }
 
     // Update is called once per frame
