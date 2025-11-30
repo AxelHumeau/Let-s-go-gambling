@@ -6,7 +6,7 @@ using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 
 
-public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget, Shop }
+public enum SelectedAction { UseItem, Move, ViewMap, BluffSelection, Bluff, BluffCalling, SelectPath, SelectItem, SelectItemTarget, Shop, FreeCam }
 
 public class TurnManager : MonoBehaviour
 {
@@ -128,7 +128,7 @@ public class TurnManager : MonoBehaviour
 
     public void OnNavigate(CallbackContext context)
     {
-        if (!context.started || WaitingForCellAction) return;
+        if (!context.started || WaitingForCellAction || selectedAction == SelectedAction.FreeCam) return;
         float verticalDirection = context.ReadValue<Vector2>().y;
         float horizontalDirection = context.ReadValue<Vector2>().x;
         switch (selectedAction)
@@ -185,7 +185,7 @@ public class TurnManager : MonoBehaviour
 
     public void OnSubmit(CallbackContext context)
     {
-        if (!context.started || WaitingForCellAction) return;
+        if (!context.started || WaitingForCellAction || selectedAction == SelectedAction.FreeCam) return;
         switch (selectedAction)
         {
             case SelectedAction.UseItem:
@@ -209,7 +209,8 @@ public class TurnManager : MonoBehaviour
                 }
                 break;
             case SelectedAction.ViewMap:
-                // Implement map viewing
+                selectedAction = SelectedAction.FreeCam;
+                OnChangeOptionCallback();
                 break;
             case SelectedAction.BluffSelection: // Player chooses whether to bluff
                 if (yesNoSelection)
@@ -278,6 +279,15 @@ public class TurnManager : MonoBehaviour
                 selectedAction = SelectedAction.Move;
                 OnChangeOptionCallback();
                 break;
+        }
+    }
+
+    public void OnCancel(CallbackContext context)
+    {
+        if (selectedAction == SelectedAction.FreeCam)
+        {
+            selectedAction = SelectedAction.Move;
+            OnChangeOptionCallback();
         }
     }
 
