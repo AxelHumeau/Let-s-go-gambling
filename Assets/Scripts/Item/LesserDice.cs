@@ -7,7 +7,9 @@ public class LesserDice : IItem
 
     public ItemTarget target => ItemTarget.Player;
 
-    public void Use(Player target)
+    public string name => "Lesser Dice";
+
+    public void Use(Player target, Player _)
     {
         target.AddEffect(Effect.Half, 1);
     }

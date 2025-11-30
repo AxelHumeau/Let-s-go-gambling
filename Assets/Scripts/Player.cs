@@ -73,7 +73,13 @@ public class Player : MonoBehaviour
     {
         if (index < 0 || index >= inventory.Count) return;
         IItem item = inventory[index];
-        item.Use(target);
+        item.Use(target, this);
+        inventory.RemoveAt(index);
+    }
+
+    public void RemoveItem(int index)
+    {
+        if (index < 0 || index >= inventory.Count) return;
         inventory.RemoveAt(index);
     }
 

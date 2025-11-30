@@ -7,7 +7,9 @@ public class DoubleDice : IItem
 
     public ItemTarget target => ItemTarget.Player;
 
-    public void Use(Player target)
+    public string name => "Double Dice";
+
+    public void Use(Player target, Player _)
     {
         target.AddEffect(Effect.Double, 1);
     }

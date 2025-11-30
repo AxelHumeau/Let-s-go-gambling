@@ -10,7 +10,20 @@ public class ShopManager : MonoBehaviour
 {
 	public bool IsOpen = false;
 	public List<IItem> ItemsForSale = new List<IItem>();
-    private List<IItem> possibleItems = new List<IItem> { new DoubleDice(), new LesserDice() };
+    private List<IItem> possibleItems = new List<IItem>
+    {
+        new Juggernaut(),
+        new DoubleDice(),
+        new LesserDice(),
+        new TeleportAhead(),
+        new TeleportToStockCell(),
+        new StealItem(),
+        new Krach(),
+        new TruthLasso(),
+        new SwapPlayer(),
+        new SwapCells(),
+        // Add more IItem implementations here if new ones are created
+    };
     private int selectedOption = 0;
     private Player player;
     private Action closeCallback;
